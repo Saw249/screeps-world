@@ -20,14 +20,14 @@ var roleBuilder = {
 				if(creep.build(target) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(target, {visualizePathStyle: {stroke: 'yellow'}});
                 }
-			} 
+			} else { creep.say('🚧💤'); }
 	    } else {
 			var source = builder_find_source(creep)
 			if(source) {
 				if(creep.withdraw(source, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 					creep.moveTo(source, {visualizePathStyle: {stroke: 'yellow'}});
 				}
-			} 			
+			} else { creep.say('🔄💤'); }
         }
 	}
 };

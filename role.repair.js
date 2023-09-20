@@ -12,16 +12,18 @@ var roleRepair = {
 	    if(creep.memory.repair) {
 			var target = repair_find_target(creep)		
 			if (target) {
+				creep.say('🔧');
 				if (creep.repair(target) == ERR_NOT_IN_RANGE) {
 					creep.moveTo(target, {visualizePathStyle: {stroke: 'pink'}});
 				}
-			}
+			} else { creep.say('🔧💤'); }
 	    } else {
 			var source = repair_find_source(creep)		
 			if(source) {
+				creep.say('🔄');
 				if(creep.withdraw(source, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 					creep.moveTo(source, {visualizePathStyle: {stroke: 'pink'}});
-				}
+				} else { creep.say('🔄💤'); }
 			}
         }
 	}

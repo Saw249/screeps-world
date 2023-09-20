@@ -10,3 +10,4 @@ global.idle = function(creep,reason) {
 		creep.moveTo(35,10)
 	}
 }
+

@@ -82,7 +82,7 @@ global.builder_find_target = function(creep) {
 }
 	
 global.builder_find_source = function(creep) {
-	var container =  creep.room.find(FIND_STRUCTURES, {
+	var container =  creep.pos.findClosestByPath(FIND_STRUCTURES, {
 		filter: (structure) => {
 			return ( 
 				(structure.structureType === STRUCTURE_CONTAINER) || 
@@ -92,7 +92,7 @@ global.builder_find_source = function(creep) {
 	});
 	
 	// es gibt container also nutzen wir diese
-	if (container.length > 0) {
+	if (container) {
 		var source = creep.pos.findClosestByPath(FIND_STRUCTURES, {
 				filter: (structure) => {
 					return ( 
@@ -178,13 +178,11 @@ global.carry_find_target = function(creep) {
 
 global.carry_find_source = function(creep) {
 	//erstmal dropped kram
-	//überarbeiten -> benötigt pickup und kein withdraw
-	//if (!source) {
-	//	var source = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
-    //     filter: (r) => r.resourceType == RESOURCE_ENERGY
-    //});
-	//}
-	//console.log(JSON.stringify(source))
+	if (!source) {
+		var source = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
+         filter: (r) => r.resourceType == RESOURCE_ENERGY
+    });
+	}
 	
 	//erstmal grabsteine
 	if (!source) {
@@ -229,7 +227,7 @@ global.carry_find_source = function(creep) {
 			}
 		});
 	}
-	
+
 	return source
 }
 
@@ -247,6 +245,7 @@ global.harvester_find_target = function(creep) {
 		var target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
 			filter: (structure) => {
 				return ( 
+					(structure.structureType === STRUCTURE_LINK && (structure.store.getUsedCapacity([RESOURCE_ENERGY]) < structure.store.getCapacity([RESOURCE_ENERGY]))) ||
 					(structure.structureType === STRUCTURE_CONTAINER && (structure.store.getUsedCapacity([RESOURCE_ENERGY]) < structure.store.getCapacity([RESOURCE_ENERGY]))) ||
 					(structure.structureType === STRUCTURE_STORAGE && (structure.store.getUsedCapacity([RESOURCE_ENERGY]) < structure.store.getCapacity([RESOURCE_ENERGY]))) ||
 					(structure.structureType === STRUCTURE_SPAWN && (structure.store.getUsedCapacity([RESOURCE_ENERGY]) < structure.store.getCapacity([RESOURCE_ENERGY])))
@@ -277,7 +276,7 @@ global.harvester_find_source = function(creep) {
 
 
 global.upgrader_find_source = function(creep) {
-	var container =  creep.room.find(FIND_STRUCTURES, {
+	var container =  creep.pos.findClosestByPath(FIND_STRUCTURES, {
 		filter: (structure) => {
 			return ( 
 				(structure.structureType === STRUCTURE_CONTAINER) || 
@@ -287,7 +286,7 @@ global.upgrader_find_source = function(creep) {
 	});
 	
 	// es gibt container also nutzen wir diese
-	if (container.length > 0) {
+	if (container) {
 		var source = creep.pos.findClosestByPath(FIND_STRUCTURES, {
 				filter: (structure) => {
 					return ( 
@@ -323,25 +322,26 @@ global.upgrader_find_source = function(creep) {
 global.repair_find_target = function(creep) {
 	var hprampto = Memory["room"][creep.room.name]["tmp"]["repair"]["rampart"]["max"]
 	var hpwallto = Memory["room"][creep.room.name]["tmp"]["repair"]["wall"]["max"]
+		
 	//erst alles außer wände und ramparts
 	if (!target) {
-		var target = creep.room.find(FIND_STRUCTURES, { 
+		var target = creep.pos.findClosestByPath(FIND_STRUCTURES, { 
 			filter: 
 				object => (
-					  (object.hits < object.hitsMax && object.structureType !== STRUCTURE_WALL && object.structureType !== STRUCTURE_RAMPART)
-				  )
+					  (object.hits < (object.hitsMax*0.95) && ((object.structureType !== STRUCTURE_WALL) && (object.structureType !== STRUCTURE_RAMPART)))
+				)
 			}
 		)
 	}
 	
-	//dann wände und ramparts
+	//wände und ramparts
 	if (!target) {
-		var target = creep.room.find(FIND_STRUCTURES, { 
+		var target = creep.pos.findClosestByPath(FIND_STRUCTURES, { 
 			filter: 
 				object => (
-					  (object.hits < hprampto && object.structureType === STRUCTURE_RAMPART)
-					  (object.hits < hpwallto && object.structureType === STRUCTURE_WALL)
-				  )
+					(object.hits < hprampto && object.structureType === STRUCTURE_RAMPART) ||
+					(object.hits < hpwallto && object.structureType === STRUCTURE_WALL)
+				)
 			}
 		)
 	}

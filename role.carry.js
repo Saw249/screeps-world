@@ -14,33 +14,27 @@ var roleCarry = {
 	    if(creep.memory.carry) {			
 			var target = carry_find_target(creep)
 			creep.memory.target = target
-			//creep.memory.source = null
             if(target) {
+				creep.say('🔄');
                 if(creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(target, {visualizePathStyle: {stroke: 'green'}});
                 }
-            }
+            }  else { creep.say('🔄💤'); }
 	    } else {			
 			var source = carry_find_source(creep)
 			creep.memory.source = source
-			//creep.memory.target = null
 			if(source) {
-				// if (!source.structureType || source.destroyTime < 0) {
-					// if(creep.pickup(source, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-						// creep.moveTo(source, {visualizePathStyle: {stroke: 'green'}});
-					// } else {
-						// console.log("pickup: " +creep.pickup(source, RESOURCE_ENERGY))
-						// console.log(JSON.stringify(source))
-					// }
-				// } else {
+				creep.say('📦');
+				if (!source.structureType || source.destroyTime < 0) {
+					if(creep.pickup(source, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+						creep.moveTo(source, {visualizePathStyle: {stroke: 'green'}});
+					} 
+				} else {
 					if(creep.withdraw(source, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 						creep.moveTo(source, {visualizePathStyle: {stroke: 'green'}});
-					} else {
-						
-						console.log("withdraw: " +creep.withdraw(source, RESOURCE_ENERGY))
-					//}
+					} 
 				}			
-			} 
+			}  else { creep.say('📦💤'); }
 		}		
 	}
 }

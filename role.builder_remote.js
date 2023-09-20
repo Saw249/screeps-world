@@ -31,25 +31,34 @@ var roleBuilderRemote = {
 				if(creep.build(target) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(target, {visualizePathStyle: {stroke: 'yellow'}});
                 }
-			}
+			} else { creep.say('🚧💤'); }
+				
 			
 		} else if (!creep.memory.building && creep.pos.roomName == home) { // wir sind daheim und holen energie
 			var source = builder_find_source(creep)
 			if(source) {
 				if(creep.withdraw(source, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 					creep.moveTo(source, {visualizePathStyle: {stroke: 'yellow'}});
-				}
-			}
+				} 
+			} else { creep.say('🔄💤'); }
 		
 		
 		} else if (!creep.memory.building && creep.pos.roomName == target) {//wir müssen heim wir brauchen energie
 			var path = creep.room.findPath(creep.pos, spawn.pos);
-			creep.moveByPath(path,{visualizePathStyle: {stroke: 'yellow'}})	
+			creep.moveByPath(path)	
 			
 		} else if (creep.memory.building && creep.pos.roomName == home) {	// wir haben energie geholt und müssen dringend wieder los 		
 			var path = creep.room.findPath(creep.pos, targetflag.pos);
-			creep.moveByPath(path,{visualizePathStyle: {stroke: 'yellow'}})	
+			creep.moveByPath(path)	
 			
+		}else if ((creep.pos.roomName != home && creep.pos.roomName != home) && !creep.memory.building) { // wir sind irgendwo auf dem weg heim
+			var path = creep.room.findPath(creep.pos, spawn.pos);
+			creep.moveByPath(path)	
+			
+		} else if ((creep.pos.roomName != home && creep.pos.roomName != home) && creep.memory.building) { // wir sind irgendwo auf dem weg zum harvest
+			var path = creep.room.findPath(creep.pos, targetflag.pos);
+			creep.moveByPath(path)	
+		
 		} else {
 			console.log("BuildRemote lost!")
 		}

@@ -5,7 +5,7 @@ var roleDead = {
 	
     run: function(creep) {
 		var tickstodead = 30
-		
+	
 		if (creep.ticksToLive <= tickstodead && creep.store[RESOURCE_ENERGY] > 0) {	
 			creep.say("💀" + creep.ticksToLive + "💀")
 			var target = creep.pos.findClosestByPath(FIND_STRUCTURES, {

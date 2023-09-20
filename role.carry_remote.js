@@ -20,27 +20,43 @@ var roleCarryRemote = {
 		if(creep.memory.carry && creep.pos.roomName == target) { //alles gut 
 			var target = carry_find_target(creep)
             if(target) {
+				creep.say('📦');
                 if(creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(target, {visualizePathStyle: {stroke: 'green'}});
                 }
-            }
+            }  else { creep.say('📦💤'); }
 			
 		} else if (!creep.memory.carry && creep.pos.roomName == home) { // energie auffülen
 			var source = carry_find_source(creep)
 			if(source) {
-				if(creep.withdraw(source, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-					creep.moveTo(source, {visualizePathStyle: {stroke: 'green'}});
-				}
-			}
+				creep.say('🔄');
+				if (!source.structureType || source.destroyTime < 0) {
+					if(creep.pickup(source, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+						creep.moveTo(source, {visualizePathStyle: {stroke: 'green'}});
+					} 
+				} else {
+					if(creep.withdraw(source, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+						creep.moveTo(source, {visualizePathStyle: {stroke: 'green'}});
+					} 
+				}			
+			}  else { creep.say('🔄💤'); }
 			
 		} else if (!creep.memory.carry && creep.pos.roomName == target) {//wir müssen heim wir brauchen energie
 			var path = creep.room.findPath(creep.pos, spawn.pos);
-			creep.moveByPath(path,{visualizePathStyle: {stroke: 'green'}})	
+			creep.moveByPath(path)	
 			
 		} else if (creep.memory.carry && creep.pos.roomName == home) {	// wir haben energie geholt und müssen dringend wieder los 		
 			var path = creep.room.findPath(creep.pos, targetflag.pos);
-			creep.moveByPath(path,{visualizePathStyle: {stroke: 'green'}})	
+			creep.moveByPath(path)	
 			
+		} else if ((creep.pos.roomName != home && creep.pos.roomName != home) && !creep.memory.carry) { // wir sind irgendwo auf dem weg heim
+			var path = creep.room.findPath(creep.pos, spawn.pos);
+			creep.moveByPath(path)	
+			
+		} else if ((creep.pos.roomName != home && creep.pos.roomName != home) && creep.memory.carry) { // wir sind irgendwo auf dem weg zum harvest
+			var path = creep.room.findPath(creep.pos, targetflag.pos);
+			creep.moveByPath(path)	
+		
 		} else {
 			console.log("Carry Remote lost!")
 		}

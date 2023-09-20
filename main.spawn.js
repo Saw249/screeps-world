@@ -1,3 +1,33 @@
+global.checkremotecreep = function(spawn,flags,spawntarget) {
+	
+	for (var flag in flags) {
+		
+		//console.log("start: " + flags[flag]["name"])
+		var target_flag = flags[flag]
+		var flag_creep = Game["flags"][flags[flag]["name"]]["memory"]["flag_creep"]
+				
+		if (flag_creep != null) {// ist in der flag schon überhaupt claimcreep angelegt ?
+			//console.log(flag_creep+" != null")
+		
+			if (!Game.creeps[flag_creep]) { //gibt es den creep nicht mehr ? 
+				//console.log("!Game.creeps[flag_creep]" + !Game.creeps[flag_creep])
+				Game["flags"][flags[flag]["name"]]["memory"]["flag_creep"] = spawntarget + Game.time
+				return  { memory: { role: spawntarget, home: spawn.room.name, target: flags[flag].pos.roomName, flag: target_flag, spawn: spawn } }
+				break;
+			} else {
+				//console.log(flag_creep+" gibt es noch")
+			}
+			
+		} else { // else // ist in der flag schon überhaupt claimcreep angelegt ?
+			//console.log("else")
+			Game["flags"][flags[flag]["name"]]["memory"]["flag_creep"] = spawntarget + Game.time
+			return  { memory: { role: spawntarget, home: spawn.room.name, target: flags[flag].pos.roomName, flag: target_flag, spawn: spawn } }
+			break;
+		}
+	}	
+}	
+
+
 global.calccreep = function(creep,spawn,count,max,count_alive,count_max) {
 	var energymax = Memory["room"][spawn.room.name]["settings"]["spawn"]["energypercent"] 
 	var minimum = Memory["room"][spawn.room.name]["settings"]["spawn"]["minimum"]
@@ -37,7 +67,8 @@ var mainSpawn = {
 		var priority = []
 		var count_alive = 0
 		var count_max = 0
-				
+		
+		
 		
 		
 		
@@ -56,7 +87,7 @@ var mainSpawn = {
 			else if (Game.flags[flag].name.includes("BUILD")) { flags_build.push(Game.flags[flag]) }
 			else if (Game.flags[flag].name.includes("CARRY")) { flags_carry.push(Game.flags[flag]) }
 		}
-		
+				
 		//hier brauchen wir wohl nun ein claimer
 		if (flags_claim.length >0) {
 			//Memory["room"][spawn.room.name]["creeps"]["claim"]["max"] = flags_claim.length
@@ -133,9 +164,9 @@ var mainSpawn = {
 		var target = spawn.room.find(FIND_STRUCTURES, { 
 			filter: 
 				object => (
-					  (object.hits < object.hitsMax && object.structureType !== STRUCTURE_WALL && object.structureType !== STRUCTURE_RAMPART) ||
-					  (object.hits < hprampto && object.structureType === STRUCTURE_RAMPART) ||
-					  (object.hits < hpwallto && object.structureType === STRUCTURE_WALL)
+					(object.hits < (object.hitsMax*0.95) && ((object.structureType !== STRUCTURE_WALL) && (object.structureType !== STRUCTURE_RAMPART))) ||
+					(object.hits < hprampto && object.structureType === STRUCTURE_RAMPART) ||
+					(object.hits < hpwallto && object.structureType === STRUCTURE_WALL)
 					  )
 			}
 		)
@@ -191,7 +222,19 @@ var mainSpawn = {
 		
 		
 		
-		
+		//wenn wir keine baustellen haben brauchen wir auch kein builder
+		var target = spawn.room.find(FIND_MY_CONSTRUCTION_SITES);
+		if (target.length > 0) {
+			//die Priorität ist noch im negativen bereich
+			if(Memory["room"][spawn.room.name]["creeps"]["builder"]["priority"] <= 0) {
+				Memory["room"][spawn.room.name]["creeps"]["builder"]["priority"] = Memory["room"][spawn.room.name]["creeps"]["builder"]["priority"] * -1 
+			}
+		} else {
+			//die Priorität ist noch positiv
+			if(Memory["room"][spawn.room.name]["creeps"]["builder"]["priority"] >= 0) {
+				Memory["room"][spawn.room.name]["creeps"]["builder"]["priority"] = Memory["room"][spawn.room.name]["creeps"]["builder"]["priority"] - (Memory["room"][spawn.room.name]["creeps"]["builder"]["priority"]*2)
+			}
+		}
 		
 		
 		
@@ -239,114 +282,57 @@ var mainSpawn = {
 		
 		
 		
-		if (spawn.spawning == null) {
-			//wir haben nun 1 array mit den infos der creeps und eins für priorität (basierend auf % fehlend )
+		if (spawn.spawning == null) { //wir haben nun 1 array mit den infos der creeps und eins für priorität (basierend auf % fehlend )
 			if (priority.length >= 1) { 
 				//sortiermagie
 				priority = (_.sortBy(priority, 'priority')).reverse();
-				var spawntarget = priority[0]["role"]
-				//console.log(JSON.stringify(priority))
-			}
-			//wir spawnen nun 
-			if (spawntarget != undefined) {
 				
-				
-				//wenn wir ein claimer/remote irgendwas spawnen, schreiben wir den namen in die flag damit die creeps wissen was phase ist?
-				//wir würfeln das memory zusammen
-				if (spawntarget == "claim") {
-					for (var flag in flags_claim) {
-						var target_room = flags_claim[flag].pos.roomName
-						var target_flag = flags_claim[flag].name
-						var claim_creep = Game["flags"][target_flag]["memory"]["claimcreep"]
+				//console.log(priority.length)
+				for (var z = 0; z < priority.length; z++) {
+						
+					var spawntarget = priority[z]["role"]
+					//wir können hier direkt das spawntarget auswählen und ggf. das nächste nehmen (z.b. mehr remotes als targets)
 					
-						// ist in der flag schon überhaupt claimcreep angelegt ?
-						if (claim_creep != null) {
-							//gibt es den creep noch?
-							if (!Game.creeps[claim_creep]) {
-								Game["flags"][target_flag]["memory"]["claimcreep"] = spawntarget + Game.time
-								console.log("der creep ist gestorben! hier brauchen wir ein neuen")
-							}
-						} else {
-							Game["flags"][target_flag]["memory"]["claimcreep"] = spawntarget + Game.time
-							console.log("es gab noch keinen creep! wir brauchen einen!")	
-						}
-					}
-					var memory = {	memory: {role: spawntarget, home: spawn.room.name, target: target_room, flag: flags_claim[flag], spawn: spawn} 	}
-					
-				} else if (spawntarget == "builder_remote") {
-					for (var flag in flags_build) {
-						var target_room = flags_build[flag].pos.roomName
-						var target_flag = flags_build[flag].name
-						var build_creep = Game["flags"][target_flag]["memory"]["build_creep"]
-					
-						// ist in der flag schon überhaupt claimcreep angelegt ?
-						if (build_creep != null) {
-							//gibt es den creep noch?
-							if (!Game.creeps[flags_build]) {
-								Game["flags"][target_flag]["memory"]["build_creep"] = spawntarget + Game.time
-							}
-						} else {
-							Game["flags"][target_flag]["memory"]["build_creep"] = spawntarget + Game.time
-						}
-					}
-					var memory = {	memory: {role: spawntarget, home: spawn.room.name, target: target_room, flag: flags_build[flag], spawn: spawn 	}	}
+					if (spawntarget == "claim") { 
+						var memory = checkremotecreep(spawn,flags_claim,spawntarget)
+			
+					} else if (spawntarget == "builder_remote") {
+						var memory = checkremotecreep(spawn,flags_builder,spawntarget)
 
-				} else if (spawntarget == "carry_remote") {
-					for (var flag in flags_carry) {
-						var target_room = flags_carry[flag].pos.roomName
-						var target_flag = flags_carry[flag].name
-						var carry_creep = Game["flags"][target_flag]["memory"]["carry_creep"]
-					
-						// ist in der flag schon überhaupt claimcreep angelegt ?
-						if (carry_creep != null) {
-							//gibt es den creep noch?
-							if (!Game.creeps[flags_carry]) {
-								Game["flags"][target_flag]["memory"]["carry_creep"] = spawntarget + Game.time
-							}
-						} else {
-							Game["flags"][target_flag]["memory"]["carry_creep"] = spawntarget + Game.time
-						}
+					} else if (spawntarget == "carry_remote") {
+						var memory = checkremotecreep(spawn,flags_carry,spawntarget)
+						
+					}  else if (spawntarget == "harvester_remote") { 
+						var memory = checkremotecreep(spawn,flags_harvest,spawntarget)
+						
+					} else {
+						var memory = {	memory: {role: spawntarget, home: spawn.room.name, spawn: spawn} 	} 
 					}
-					var memory = {	memory: {role: spawntarget, home: spawn.room.name, target: target_room, flag: flags_carry[flag], spawn: spawn 	}	}
 
+					//wir gehen die Prioritäsliste durch, bis wir ein gültiges memory haben und den nehmen wir dann!
+					if (memory) { break }
 					
-				}  else if (spawntarget == "harvester_remote") {
-					for (var flag in flags_harvest) {
-						var target_room = flags_harvest[flag].pos.roomName
-						var target_flag = flags_harvest[flag].name
-						var harvester_remote = Game["flags"][target_flag]["memory"]["harvester_remote"]
-					
-						// ist in der flag schon überhaupt claimcreep angelegt ?
-						if (harvester_remote != null) {
-							//gibt es den creep noch?
-							if (!Game.creeps[flags_harvest]) {
-								Game["flags"][target_flag]["memory"]["harvester_remote"] = spawntarget + Game.time
-							}
-						} else {
-							Game["flags"][target_flag]["memory"]["harvester_remote"] = spawntarget + Game.time
-						}
-					}
-					var memory = {	memory: {role: spawntarget, home: spawn.room.name, target: target_room, flag: flags_harvest[flag], spawn: spawn 	}	}
-
-				} else { var memory = {	memory: {role: spawntarget, home: spawn.room.name, spawn: spawn} 	} }
-		
-				
-				// //spawnbefehl
-				spawn.spawnCreep(
-					calccreep(
-						 spawntarget,                    //rolle
-						 spawn,							 //spawn
-						 creep[spawntarget]["count"],	 //count
-						 creep[spawntarget]["max"],		 //max
-						 count_alive,					//anzahl der lebenden creeps
-						 count_max,					 //anzahl der "geplanten" creeps
-					),
-					spawntarget + Game.time, 			//creep name
-					memory								//creep memory
-				);
+				}
+							
+				if (spawntarget != undefined && memory != undefined) { //wir spawnen nun
+					// //spawnbefehl
+					spawn.spawnCreep(
+						calccreep(
+							 spawntarget,                    //rolle
+							 spawn,							 //spawn
+							 creep[spawntarget]["count"],	 //count
+							 creep[spawntarget]["max"],		 //max
+							 count_alive,					//anzahl der lebenden creeps
+							 count_max,					 //anzahl der "geplanten" creeps
+						),
+						spawntarget + Game.time, 			//creep name
+						memory								//creep memory
+					);
+				} else {
+					console.log(spawntarget + " hat es nicht geschafft.")
+				}
 			}
 		}
-		
 		
 		
 		

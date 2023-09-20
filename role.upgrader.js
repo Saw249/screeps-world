@@ -14,18 +14,27 @@ var roleUpgrader = {
 	    }
 
 	    if(creep.memory.upgrading) {
+			
+			
+			if (!creep.room.controller.sign || creep.room.controller.sign != Memory["room"][creep.room.name]["settings"]["sign"]) {
+				if(creep.signController(creep.room.controller, Memory["room"][creep.room.name]["settings"]["sign"]) == ERR_NOT_IN_RANGE) {
+					creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
+				}
+			}
+			
             if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
-            }
+            } else { creep.say('⚡'); } 
 			
 		 } else { 
 		 
 			var source = upgrader_find_source(creep)
 			if(source) {
+				creep.say('🔄');
 				if(creep.withdraw(source, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 					creep.moveTo(source, {visualizePathStyle: {stroke: '#ffffff'}});
 				}
-			}
+			} else { creep.say('🔄💤'); }
         }
 	}
 };

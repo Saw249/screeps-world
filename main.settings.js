@@ -52,6 +52,9 @@ var mainSettings = {
 			} 
 		}
 		
+		if (!Memory["room"][spawn.room.name]["settings"]["sign"] 
+		   || Memory["room"][spawn.room.name]["settings"]["sign"] == "reset" ) { 				Memory["room"][spawn.room.name]["settings"]["sign"] = "🪄 Master gave Dobby a sock. Dobby is free elf! 🧦"	}
+		
 		if (!Memory["room"][spawn.room.name]["settings"]["spawn"]["energypercent"]) { 			Memory["room"][spawn.room.name]["settings"]["spawn"]["energypercent"] 		=		1 		} // % der total energy wird zum spawnen verwendet
 		if (!Memory["room"][spawn.room.name]["settings"]["spawn"]["minimum"]) { 				Memory["room"][spawn.room.name]["settings"]["spawn"]["minimum"]				= 		0.25 	} //25% können fehlen solange benutzen wir emergency
 		if (!Memory["room"][spawn.room.name]["settings"]["repair"]["wall"]) {					Memory["room"][spawn.room.name]["settings"]["repair"]["wall"]				= 		0.25 	} //wir reparieren walls nur bis zu 25% des maximal möglichen

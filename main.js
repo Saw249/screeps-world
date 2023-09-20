@@ -1,4 +1,3 @@
-//“🐯 Warning: fully automated murder zone 🐯” 
 //require
 var mainMemory = require('main.memory');
 var mainSettings = require('main.settings');
@@ -24,12 +23,13 @@ try {	var roleBuilderRemote = 	require('role.builder_remote');			} catch (error)
 try {	var roleCarryRemote = 		require('role.carry_remote');			} catch (error) 	{ console.log('Require Role CarryRemote error: '+ error + ' stack: ' + error.stack); }
 
 module.exports.loop = function () { 
+	console.log("-----------------------" + Game.time + "-----------------------")
 	mainMemory.run();
 	
 	if (Game.shard.name != "screeps" && Game.cpu.bucket >= 10000) { 	//Auf Privaten Server gibs keine Pixel
 		Game.cpu.generatePixel();
 	}
-	
+		
 	//Room Control
 	for(var spawn in Game.spawns) {
 		//Settings
@@ -48,9 +48,7 @@ module.exports.loop = function () {
 	for(var name in Game.creeps) {
 		var creep = Game.creeps[name];
 		
-		if (creep.ticksToLive <= 30 && creep.store[RESOURCE_ENERGY] > 0) {
-			creep.memory.role = 'dead'
-		}
+		if (creep.ticksToLive <= 30 && creep.store[RESOURCE_ENERGY] > 0) { creep.memory.role = 'dead' }
 	
 		if(creep.memory.role == 'dead') 				{ try { roleDead.run(creep);} 				catch (error) 	{ console.log('Dead error: '+ error + ' stack: ' + error.stack); } }
 		if(creep.memory.role == 'harvester') 			{ try { roleHarvester.run(creep);} 			catch (error) 	{ console.log('Harvester error: '+ error + ' stack: ' + error.stack); } }
@@ -66,5 +64,8 @@ module.exports.loop = function () {
 		if(creep.memory.role == 'builder_remote') 		{ try { roleBuilderRemote.run(creep);} 		catch (error) 	{ console.log('BuilderRemote error: '+ error + ' stack: ' + error.stack); } }
 		if(creep.memory.role == 'carry_remote') 		{ try { roleCarryRemote.run(creep);} 		catch (error) 	{ console.log('CarryRemote error: '+ error + ' stack: ' + error.stack); } }
 	}
+	
+	console.log("</br>")
 }
+
 
